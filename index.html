@@ -115,7 +115,18 @@
         <!-- ===== VISTA DE COMPARACIÓN ===== -->
         <section id="comparison-view" class="hidden">
             <h2 id="compare-title" class="text-3xl font-black text-center mb-6 text-white">Compare Classes</h2>
-            <div id="comparison-grid" class="flex flex-col md:flex-row gap-4 overflow-x-auto pb-4">
+            
+            <!-- Pestañas para Móvil -->
+            <div id="compare-tabs-mobile" class="md:hidden flex flex-wrap justify-center gap-2 mb-4">
+                <!-- Pestañas generadas por JS -->
+            </div>
+            <!-- Contenido para Móvil -->
+            <div id="compare-content-mobile" class="md:hidden">
+                <!-- Contenido de la pestaña activa generado por JS -->
+            </div>
+
+            <!-- Grid para Desktop (el original) -->
+            <div id="comparison-grid" class="hidden md:flex flex-row gap-4 overflow-x-auto pb-4">
                 <!-- Las columnas de comparación se generarán aquí por JS -->
             </div>
         </section>
@@ -253,12 +264,12 @@
                         role: "Linha de frente agressiva. Destrói defesas e cria novas rotas de ataque.",
                         role_detail: "O Assalto é a ponta de lança da equipe. Seu papel é estar na linha de frente, abrindo caminho para os companheiros, destruindo a cobertura inimiga e usando a mobilidade para flanquear e criar oportunidades de ataque inesperadas.",
                         gadgets: [
-                            { name: "Escada de Assalto", desc: "Fornece acesso a pontos elevados e cria pontes ou rampas." },
+                            { name: "Escada de Assalto", desc: "Fornece acesso a puntos elevados e cria pontes ou rampas." },
                             { name: "Lançador de Alto Explosivo", desc: "Eficaz contra infantaria e para destruir estruturas." }
                         ],
                         abilities: [
                             { name: "Focado na Missão", desc: "Captura objetivos e arma explosivos mais rapidamente." },
-                            { name: "Blindagem Rápida", desc: "Aplicação de blindagem 33% mais rápida." },
+                            { name: "Blindagem Rápida", desc: "Aplicação de blindagem 33% más rápida." },
                             { name: "Munições Cluster", desc: "Explosões do lançador geram 5 submunições fundidas." }
                         ]
                     }
@@ -325,7 +336,7 @@
                         role: "Especialista antiviatura. Repara aliados e destrói blindagem inimiga.",
                         role_detail: "O Engenheiro controla o campo de batalha de veículos. Ele mantém a blindagem aliada em perfeitas condições e é a maior ameaça aos veículos inimigos, capaz de destruí-los ou incapacitá-los à distância.",
                         gadgets: [
-                            { name: "Ferramenta de Reparo", desc: "Repara veículos aliados e danifica equipamentos inimigos." },
+                            { name: "Ferramenta de Reparo", desc: "Repara vehículos aliados e danifica equipamentos inimigos." },
                             { name: "Lançador Guiado", desc: "Dispara um míssil antiviatura que se guia até o alvo." }
                         ],
                         abilities: [
@@ -395,7 +406,7 @@
                     },
                     pt: {
                         role: "A espinha dorsal da equipe. Fornece saúde, munição e cobertura.",
-                        role_detail: "O Suporte é o pilar que mantém a equipe na luta. Sua principal função é reabastecer os aliados com saúde e munição, e usar fumaça para bloquear a visão inimiga, permitindo avanços seguros e reanimações.",
+                        role_detail: "O Suporte é o pilar que mantém a equipe na luta. Sua principal função é reabastecer os aliados com saúde e munição, e usar fumaça para bloquear a visión inimiga, permitindo avanços seguros e reanimações.",
                         gadgets: [
                             { name: "Bolsa de Suprimentos", desc: "Reabastece munição e regenera saúde para infantaria próxima." },
                             { name: "Lançador de Granada de Fumaça", desc: "Cria telas de fumaça temporárias para bloquear a linha de visão." }
@@ -550,21 +561,27 @@
                 currentLang: 'en', // Inglés es el nuevo idioma por defecto
                 currentView: 'general', // 'general' o 'comparison'
                 comparisonList: [], // Array de IDs de clase, ej: ['assault', 'recon']
+                mobileCompareActiveTab: null, // Pestaña activa en la vista de comparación móvil
             };
 
             // ===== 2. ELEMENTOS DEL DOM =====
             const classGrid = document.getElementById('class-grid');
             const generalView = document.getElementById('general-view');
             const comparisonView = document.getElementById('comparison-view');
-            const comparisonGrid = document.getElementById('comparison-grid');
             const compareTitle = document.getElementById('compare-title');
+            
+            // --- Contenedores de Comparación ---
+            const compareTabsMobile = document.getElementById('compare-tabs-mobile');
+            const compareContentMobile = document.getElementById('compare-content-mobile');
+            const comparisonGrid = document.getElementById('comparison-grid'); // Para desktop
+            
+            // --- Controles ---
             const toggleCompareBtn = document.getElementById('toggle-compare-btn');
             const langSelector = document.getElementById('lang-selector'); // Nuevo selector
             const appTitle = document.getElementById('app-title');
             
             // --- Elementos del Modal ---
             const modal = document.getElementById('detail-modal');
-            // ... (resto de elementos del modal)
             const modalCloseBtn = document.getElementById('modal-close-btn');
             const modalCloseSr = document.getElementById('modal-close-sr');
             const modalIcon = document.getElementById('modal-icon');
@@ -577,6 +594,53 @@
             const modalAbilitiesList = document.getElementById('modal-abilities-list');
 
             // ===== 3. FUNCIONES DE RENDERIZADO =====
+
+            /**
+             * Genera el HTML interno para una columna de comparación.
+             * @param {string} classId - El ID de la clase
+             * @returns {string} - El string HTML del contenido de la columna
+             */
+            function getComparisonColumnHTML(classId) {
+                const lang = state.currentLang;
+                const strings = uiStrings[lang];
+                const data = classData[classId];
+                const classInfo = data[lang];
+                
+                return `
+                    <div class="flex items-center gap-3 mb-6 border-b border-gray-700 pb-4">
+                        <div class="text-${data.color}-500">${data.icon.replace('w-10 h-10', 'w-8 h-8')}</div>
+                        <h3 class="text-2xl font-black text-white">${data.name}</h3>
+                    </div>
+                    <div class="space-y-6">
+                        <section>
+                            <h4 class="text-lg font-bold text-${data.color}-400 mb-2">${strings.tacticalRole}</h4>
+                            <p class="text-gray-400 text-sm leading-relaxed">${classInfo.role_detail}</p>
+                        </section>
+                        <section>
+                            <h4 class="text-lg font-bold text-${data.color}-400 mb-2">${strings.keyGadgets}</h4>
+                            <ul class="space-y-3">
+                                ${classInfo.gadgets.map(g => `
+                                    <li class="text-sm">
+                                        <strong class="text-gray-100">${g.name}:</strong>
+                                        <span class="text-gray-400">${g.desc}</span>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </section>
+                        <section>
+                            <h4 class="text-lg font-bold text-${data.color}-400 mb-2">${strings.coreAbilities}</h4>
+                            <ul class="space-y-3">
+                                ${classInfo.abilities.map(a => `
+                                    <li class="text-sm">
+                                        <strong class="text-gray-100">${a.name}:</strong>
+                                        <span class="text-gray-400">${a.desc}</span>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </section>
+                    </div>
+                `;
+            }
 
             /**
              * Renderiza la vista principal (grid de tarjetas de clase)
@@ -629,74 +693,62 @@
             }
 
             /**
-             * Renderiza la vista de comparación
+             * Renderiza la vista de comparación (para móvil y escritorio)
              */
             function renderComparisonView() {
-                comparisonGrid.innerHTML = ''; // Limpiar grid
+                // Limpiar contenedores
+                comparisonGrid.innerHTML = ''; 
+                compareTabsMobile.innerHTML = '';
+                compareContentMobile.innerHTML = '';
+
                 const lang = state.currentLang;
                 const strings = uiStrings[lang];
-                
                 compareTitle.textContent = strings.compareTitle;
 
                 if (state.comparisonList.length < 1) {
-                    comparisonGrid.innerHTML = `<p class="text-gray-400 text-center w-full text-lg">${strings.compareEmpty}</p>`;
+                    const emptyMsg = `<p class="text-gray-400 text-center w-full text-lg">${strings.compareEmpty}</p>`;
+                    comparisonGrid.innerHTML = emptyMsg;
+                    compareContentMobile.innerHTML = emptyMsg; // Mostrar mensaje en ambos
                     return;
                 }
 
+                // Asegurar que haya una pestaña activa
+                if (!state.mobileCompareActiveTab || !state.comparisonList.includes(state.mobileCompareActiveTab)) {
+                    state.mobileCompareActiveTab = state.comparisonList[0];
+                }
+                const activeTabId = state.mobileCompareActiveTab;
+
+                // Construir todas las vistas
                 state.comparisonList.forEach(classId => {
                     const data = classData[classId];
-                    const classInfo = data[lang];
-                    
-                    const column = document.createElement('div');
-                    column.className = 'flex-1 bg-gray-800 rounded-xl shadow-lg p-6 min-w-[300px] border border-gray-700/50';
-                    column.innerHTML = `
-                        <div class="flex items-center gap-3 mb-6 border-b border-gray-700 pb-4">
-                            <div class="text-${data.color}-500">${data.icon.replace('w-10 h-10', 'w-8 h-8')}</div>
-                            <h3 class="text-2xl font-black text-white">${data.name}</h3>
-                        </div>
-                        
-                        <div class="space-y-6">
-                            <section>
-                                <h4 class="text-lg font-bold text-${data.color}-400 mb-2">${strings.tacticalRole}</h4>
-                                <p class="text-gray-400 text-sm leading-relaxed">${classInfo.role_detail}</p>
-                            </section>
-                            
-                            <section>
-                                <h4 class="text-lg font-bold text-${data.color}-400 mb-2">${strings.keyGadgets}</h4>
-                                <ul class="space-y-3">
-                                    ${classInfo.gadgets.map(g => `
-                                        <li class="text-sm">
-                                            <strong class="text-gray-100">${g.name}:</strong>
-                                            <span class="text-gray-400">${g.desc}</span>
-                                        </li>
-                                    `).join('')}
-                                </ul>
-                            </section>
-                            
-                            <section>
-                                <h4 class="text-lg font-bold text-${data.color}-400 mb-2">${strings.coreAbilities}</h4>
-                                <ul class="space-y-3">
-                                    ${classInfo.abilities.map(a => `
-                                        <li class="text-sm">
-                                            <strong class="text-gray-100">${a.name}:</strong>
-                                            <span class="text-gray-400">${g.desc}</span>
-                                        </li>
-                                    `).join('')}
-                                </ul>
-                            </section>
-                        </div>
-                    `;
-                    // Corrección: usaba 'g.desc' en la lista de habilidades por error. Corregido a 'a.desc'.
-                    column.querySelector(`h4:last-of-type + ul`).innerHTML = classInfo.abilities.map(a => `
-                        <li class="text-sm">
-                            <strong class="text-gray-100">${a.name}:</strong>
-                            <span class="text-gray-400">${a.desc}</span>
-                        </li>
-                    `).join('');
+                    const isActiveMobile = (classId === activeTabId);
 
-                    comparisonGrid.appendChild(column);
+                    // 1. Construir columna de Desktop
+                    const columnDesktop = document.createElement('div');
+                    columnDesktop.className = 'flex-1 bg-gray-800 rounded-xl shadow-lg p-6 min-w-[300px] border border-gray-700/50';
+                    columnDesktop.innerHTML = getComparisonColumnHTML(classId);
+                    comparisonGrid.appendChild(columnDesktop);
+
+                    // 2. Construir pestaña de Móvil
+                    const tabMobile = document.createElement('button');
+                    tabMobile.dataset.classId = classId;
+                    tabMobile.textContent = data.name;
+                    tabMobile.className = `font-bold py-2 px-4 rounded-md transition-colors text-sm ${
+                        isActiveMobile 
+                        ? `bg-${data.color}-600 text-white shadow-lg` 
+                        : `bg-gray-700 text-gray-300 hover:bg-gray-600`
+                    }`;
+                    compareTabsMobile.appendChild(tabMobile);
+
+                    // 3. Construir contenido de Móvil
+                    const contentMobile = document.createElement('div');
+                    contentMobile.id = `mobile-content-${classId}`;
+                    contentMobile.className = `bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700/50 ${isActiveMobile ? '' : 'hidden'}`;
+                    contentMobile.innerHTML = getComparisonColumnHTML(classId);
+                    compareContentMobile.appendChild(contentMobile);
                 });
             }
+
 
             /**
              * Muestra y rellena el modal con detalles de la clase
@@ -857,8 +909,51 @@
                 }
             });
 
+            // --- Listener para pestañas de comparación en móvil ---
+            compareTabsMobile.addEventListener('click', (e) => {
+                const tab = e.target.closest('button[data-class-id]');
+                if (!tab) return;
+
+                const classId = tab.dataset.classId;
+                if (classId === state.mobileCompareActiveTab) return; // Ya está activa
+
+                state.mobileCompareActiveTab = classId;
+
+                // Actualizar estilos de pestañas
+                compareTabsMobile.querySelectorAll('button').forEach(button => {
+                    const btnClassId = button.dataset.classId;
+                    const data = classData[btnClassId];
+                    if (btnClassId === classId) {
+                        // Activar
+                        button.className = `font-bold py-2 px-4 rounded-md transition-colors text-sm bg-${data.color}-600 text-white shadow-lg`;
+                    } else {
+                        // Desactivar
+                        button.className = `font-bold py-2 px-4 rounded-md transition-colors text-sm bg-gray-700 text-gray-300 hover:bg-gray-600`;
+                    }
+                });
+
+                // Mostrar/Ocultar contenido
+                compareContentMobile.querySelectorAll('div[id^="mobile-content-"]').forEach(content => {
+                    if (content.id === `mobile-content-${classId}`) {
+                        content.classList.remove('hidden');
+                    } else {
+                        content.classList.add('hidden');
+                    }
+                });
+            });
+
+
             // --- Inicialización de la App ---
             function init() {
+                // Corregir un error en los datos de traducción de 'engineer' (portugués) y 'recon' (alemán)
+                // Esto es una autocorrección basada en una revisión.
+                try {
+                    classData.engineer.pt.gadgets[0].desc = "Repara veículos aliados e danifica equipamentos inimigos.";
+                    classData.recon.de.abilities[2].name = "Tracking-Puls";
+                } catch (e) {
+                    console.error("Error al aplicar correcciones de datos:", e);
+                }
+
                 // Pone los textos en el idioma inicial ('en' por defecto)
                 updateUIText(); 
                 // Renderiza las tarjetas iniciales
