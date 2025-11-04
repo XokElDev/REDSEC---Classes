@@ -163,7 +163,6 @@
                 <section>
                     <h4 id="modal-role-title" class="text-xl font-bold text-red-400 mb-3">
                         <!-- Role title will be updated via JS -->
-                        Tactical Role
                     </h4>
                     <p id="modal-role-desc" class="text-gray-400 leading-relaxed">
                         <!-- Role description will be inserted here -->
@@ -174,7 +173,6 @@
                 <section>
                     <h4 id="modal-gadgets-title" class="text-xl font-bold text-red-400 mb-3">
                         <!-- Gadgets title will be updated via JS -->
-                        Key Gadgets
                     </h4>
                     <ul id="modal-gadgets-list" class="space-y-3">
                         <!-- Gadgets list will be inserted here -->
@@ -185,7 +183,6 @@
                 <section>
                     <h4 id="modal-abilities-title" class="text-xl font-bold text-red-400 mb-3">
                         <!-- Abilities title will be updated via JS -->
-                        Core Abilities
                     </h4>
                     <ul id="modal-abilities-list" class="space-y-3">
                         <!-- Abilities list will be inserted here -->
@@ -772,6 +769,11 @@
                 // Rellenar textos de la UI
                 modalCloseSr.textContent = strings.close;
                 
+                // Set section titles according to language
+                modalRoleTitle.textContent = strings.tacticalRole;
+                modalGadgetsTitle.textContent = strings.keyGadgets;
+                modalAbilitiesTitle.textContent = strings.coreAbilities;
+
                 // Aplicar colores de clase dinámicamente
                 modalIcon.className = `text-${color}-500`; // Reemplaza la clase de color
                 modalRoleTitle.className = `text-xl font-bold text-${color}-400 mb-3`;
