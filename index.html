@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en"> <!-- Cambiado a 'en' como idioma principal -->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guía de Clases</title>
+    <!-- Carga de Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Importación de la fuente Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Estilo base con la fuente Inter */
+        body {
+            font-family: 'Inter', sans-serif;
+            /* El fondo se aplica con clases de Tailwind en el body */
+        }
+        /* Pequeña animación para la aparición del modal */
+        .modal-fade-in {
+            animation: fadeIn 0.2s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* --- Estilos del Interruptor (Toggle) Moderno --- */
+
+        /* Ocultar el checkbox original */
+        .compare-checkbox {
+            opacity: 0;
+            width: 0;
+            height: 0;
+            position: absolute;
+        }
+
+        /* El 'track' del interruptor */
+        .toggle-track {
+            width: 50px; /* Ancho del interruptor */
+            height: 28px; /* Alto del interruptor */
+            background-color: #4B5563; /* bg-gray-600 */
+            border-radius: 9999px; /* rounded-full */
+            padding: 3px;
+            transition: background-color 0.2s ease-in-out;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+
+        /* El 'pulgar' (thumb) del interruptor */
+        .toggle-thumb {
+            width: 22px; /* Tamaño del círculo interior */
+            height: 22px;
+            background-color: white;
+            border-radius: 9999px; /* rounded-full */
+            transition: transform 0.2s ease-in-out;
+            transform: translateX(0);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        /* Estilo cuando está 'checked' */
+        .compare-checkbox:checked + .toggle-track {
+            background-color: var(--class-color-hex, #EF4444); /* Usa el color de la clase */
+        }
+
+        .compare-checkbox:checked + .toggle-track .toggle-thumb {
+            transform: translateX(22px); /* Mueve el pulgar a la derecha */
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-b from-gray-900 to-gray-950 text-gray-100 min-h-screen">
+
+    <!-- ===== CABECERA Y CONTROLES ===== -->
+    <header class="bg-gray-800/70 backdrop-blur-sm shadow-lg p-4 sticky top-0 z-20 border-b border-gray-700/50">
+        <div class="container mx-auto flex flex-col sm:flex-row justify-between items-center">
+            <!-- Título -->
+            <h1 class="text-2xl font-black text-red-500 tracking-wide uppercase" id="app-title">
+                Class Guide
+            </h1>
+            
+            <!-- Controles Principales -->
+            <div class="flex items-center gap-4 mt-4 sm:mt-0">
+                <!-- Interruptor de Comparación -->
+                <button id="toggle-compare-btn" class="text-sm font-bold py-2 px-4 rounded-md bg-blue-600 hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg">
+                    Comparison Mode
+                </button>
+                
+                <!-- Selector de Idioma -->
+                <div class="flex items-center">
+                    <label for="lang-selector" class="sr-only">Seleccionar Idioma</label>
+                    <select id="lang-selector" class="bg-gray-700 border border-gray-600 text-white text-sm font-bold rounded-md shadow-inner p-2.5 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                        <option value="en" selected>English</option>
+                        <option value="es">Español</option>
+                        <option value="fr">Français</option>
+                        <option value="de">Deutsch</option>
+                        <option value="pt">Português</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ===== CONTENEDOR PRINCIPAL ===== -->
+    <main class="container mx-auto p-4 md:p-8">
+
+        <!-- ===== VISTA GENERAL (GRID DE CLASES) ===== -->
+        <section id="general-view">
+            <div id="class-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Las tarjetas de clase se generarán aquí por JS -->
+            </div>
+        </section>
+
+        <!-- ===== VISTA DE COMPARACIÓN ===== -->
+        <section id="comparison-view" class="hidden">
+            <h2 id="compare-title" class="text-3xl font-black text-center mb-6 text-white">Compare Classes</h2>
+            <div id="comparison-grid" class="flex flex-col md:flex-row gap-4 overflow-x-auto pb-4">
+                <!-- Las columnas de comparación se generarán aquí por JS -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ===== MODAL DE VISTA DETALLADA ===== -->
+    <div id="detail-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden" role="dialog" aria-modal="true">
+        
+        <!-- Contenido del Modal -->
+        <div id="modal-content" class="bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto modal-fade-in border border-gray-700/50">
+            <!-- Cabecera del Modal -->
+            <div class="flex justify-between items-center p-5 border-b border-gray-700 sticky top-0 bg-gray-800 z-10">
+                <div class="flex items-center gap-3">
+                    <div id="modal-icon" class="text-red-500">
+                        <!-- Icono SVG del modal se insertará aquí -->
+                    </div>
+                    <h3 id="modal-title" class="text-2xl font-bold text-white">
+                        <!-- Título del modal se insertará aquí -->
+                    </h3>
+                </div>
+                <button id="modal-close-btn" class="text-gray-400 hover:text-white transition-colors">
+                    <!-- Icono SVG de 'Cerrar' -->
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-8 h-8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    <span class="sr-only" id="modal-close-sr">Cerrar</span>
+                </button>
+            </div>
+
+            <!-- Cuerpo del Modal -->
+            <div class="p-6 md:p-8 space-y-6">
+                <!-- Rol Táctico -->
+                <section>
+                    <h4 id="modal-role-title" class="text-xl font-bold text-red-400 mb-3">Rol Táctico</h4>
+                    <p id="modal-role-desc" class="text-gray-400 leading-relaxed">
+                        <!-- Descripción del rol se insertará aquí -->
+                    </p>
+                </section>
+                
+                <!-- Dispositivos Clave -->
+                <section>
+                    <h4 id="modal-gadgets-title" class="text-xl font-bold text-red-400 mb-3">Dispositivos Clave</h4>
+                    <ul id="modal-gadgets-list" class="space-y-3">
+                        <!-- Lista de dispositivos se insertará aquí -->
+                    </ul>
+                </section>
+                
+                <!-- Habilidades Principales -->
+                <section>
+                    <h4 id="modal-abilities-title" class="text-xl font-bold text-red-400 mb-3">Habilidades Principales</h4>
+                    <ul id="modal-abilities-list" class="space-y-3">
+                        <!-- Lista de habilidades se insertará aquí -->
+                    </ul>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SCRIPT PRINCIPAL DE LA APLICACIÓN ===== -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // ===== 1. DATOS Y ESTADO DE LA APLICACIÓN =====
+
+            // --- Iconos SVG para las clases ---
+            const ICONS = {
+                assault: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-10 h-10"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" /></svg>`,
+                engineer: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-10 h-10"><path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.83-5.83M11.42 15.17l-4.25-4.25L5.83 21H11.42zm0 0L21.17 5.83 17.25 21 11.42 15.17z" /></svg>`,
+                support: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-10 h-10"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>`,
+                recon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-10 h-10"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>`
+            };
+
+            // --- Datos de las Clases (Simplificados, Bilingües y con Colores) ---
+            const classData = {
+                assault: {
+                    id: 'assault',
+                    name: "Assault",
+                    icon: ICONS.assault,
+                    color: 'red', // Tailwind color name
+                    colorHex: '#EF4444', // Hex for style attributes
+                    en: {
+                        role: "Aggressive front-line. Destroys defenses and creates new attack routes.",
+                        role_detail: "The Assault is the team's spearhead. Their role is to be on the front lines, clearing paths for teammates, destroying enemy cover, and using mobility to flank and create unexpected attack opportunities.",
+                        gadgets: [
+                            { name: "Assault Ladder", desc: "Provides access to high vantage points and creates bridges or ramps." },
+                            { name: "High Explosive Launcher", desc: "Effective against infantry and for destroying structures." }
+                        ],
+                        abilities: [
+                            { name: "Mission Focused", desc: "Captures objectives and arms explosives faster." },
+                            { name: "Quick Plating", desc: "Armor replating is 33% faster." },
+                            { name: "Cluster Munitions", desc: "Launcher explosions generate 5 fused submunitions." }
+                        ]
+                    },
+                    es: {
+                        role: "Primera línea agresiva. Destruye defensas y crea nuevas rutas de ataque.",
+                        role_detail: "El Asalto es la punta de lanza del equipo. Su función es estar en el frente, abriendo paso para sus compañeros, destruyendo cobertura enemiga y utilizando su movilidad para flanquear y crear oportunidades de ataque inesperadas.",
+                        gadgets: [
+                            { name: "Escalera de Asalto", desc: "Proporciona acceso a puntos elevados y crea puentes o rampas." },
+                            { name: "Lanzador Altamente Explosivo", desc: "Eficaz contra infantería y para destruir estructuras." }
+                        ],
+                        abilities: [
+                            { name: "Enfocado en la Misión", desc: "Captura objetivos y activa explosivos más rápido." },
+                            { name: "Blindaje Rápido", desc: "Aplica blindaje un 33% más rápido." },
+                            { name: "Munición de Racimo", desc: "Las explosiones del lanzador generan 5 submuniciones." }
+                        ]
+                    },
+                    fr: {
+                        role: "Ligne de front agressive. Détruit les défenses et crée de nouvelles voies d'attaque.",
+                        role_detail: "L'Assaut est le fer de lance de l'équipe. Son rôle est d'être en première ligne, d'ouvrir la voie à ses coéquipiers, de détruire les couvertures ennemies et d'utiliser sa mobilité pour flanquer et créer des opportunités d'attaque inattendues.",
+                        gadgets: [
+                            { name: "Échelle d'Assaut", desc: "Donne accès à des points élevés et crée des ponts ou des rampes." },
+                            { name: "Lanceur Hautement Explosif", desc: "Efficace contre l'infanterie et pour détruire les structures." }
+                        ],
+                        abilities: [
+                            { name: "Focus sur la Mission", desc: "Capture les objectifs et arme les explosifs plus rapidement." },
+                            { name: "Plaquage Rapide", desc: "Applique le blindage 33% plus rapidement." },
+                            { name: "Munitions à Fragmentation", desc: "Les explosions du lanceur génèrent 5 sous-munitions." }
+                        ]
+                    },
+                    de: {
+                        role: "Aggressive Frontlinie. Zerstört Verteidigungen und schafft neue Angriffswege.",
+                        role_detail: "Der Sturmsoldat ist die Speerspitze des Teams. Seine Rolle ist es, an vorderster Front zu stehen, Wege für Teamkollegen freizumachen, feindliche Deckung zu zerstören und Mobilität zu nutzen, um zu flankieren und unerwartete Angriffsmöglichkeiten zu schaffen.",
+                        gadgets: [
+                            { name: "Sturmleiter", desc: "Bietet Zugang zu hohen Aussichtspunkten und schafft Brücken oder Rampen." },
+                            { name: "Hochexplosiv-Werfer", desc: "Effektiv gegen Infanterie und zur Zerstörung von Strukturen." }
+                        ],
+                        abilities: [
+                            { name: "Missionsfokussiert", desc: "Erobert Ziele und legt Sprengstoffe schneller." },
+                            { name: "Schnelle Panzerung", desc: "Panzerung wird 33% schneller angelegt." },
+                            { name: "Clustermunition", desc: "Werfer-Explosionen erzeugen 5 verschmolzene Untermunitionen." }
+                        ]
+                    },
+                    pt: {
+                        role: "Linha de frente agressiva. Destrói defesas e cria novas rotas de ataque.",
+                        role_detail: "O Assalto é a ponta de lança da equipe. Seu papel é estar na linha de frente, abrindo caminho para os companheiros, destruindo a cobertura inimiga e usando a mobilidade para flanquear e criar oportunidades de ataque inesperadas.",
+                        gadgets: [
+                            { name: "Escada de Assalto", desc: "Fornece acesso a pontos elevados e cria pontes ou rampas." },
+                            { name: "Lançador de Alto Explosivo", desc: "Eficaz contra infantaria e para destruir estruturas." }
+                        ],
+                        abilities: [
+                            { name: "Focado na Missão", desc: "Captura objetivos e arma explosivos mais rapidamente." },
+                            { name: "Blindagem Rápida", desc: "Aplicação de blindagem 33% mais rápida." },
+                            { name: "Munições Cluster", desc: "Explosões do lançador geram 5 submunições fundidas." }
+                        ]
+                    }
+                },
+                engineer: {
+                    id: 'engineer',
+                    name: "Engineer",
+                    icon: ICONS.engineer,
+                    color: 'amber',
+                    colorHex: '#F59E0B',
+                    en: {
+                        role: "Anti-vehicle specialist. Repairs allies and destroys enemy armor.",
+                        role_detail: "The Engineer controls the vehicle battlefield. They keep friendly armor in top condition and are the biggest threat to enemy vehicles, able to destroy or disable them from a distance.",
+                        gadgets: [
+                            { name: "Repair Tool", desc: "Repairs friendly vehicles and damages enemy equipment." },
+                            { name: "Aim-Guided Launcher", desc: "Fires an anti-vehicle missile that guides to the target." }
+                        ],
+                        abilities: [
+                            { name: "Mechanized Infantry", desc: "Takes less explosive damage and protects vehicles." },
+                            { name: "Devastating Impact", desc: "Damaging enemy vehicles reduces their repair effectiveness." },
+                            { name: "Mobility-Kill Warhead", desc: "Launcher hits temporarily immobilize vehicles." }
+                        ]
+                    },
+                    es: {
+                        role: "Especialista anti-vehículo. Repara aliados y destruye blindados enemigos.",
+                        role_detail: "El Ingeniero controla el campo de batalla de vehículos. Mantiene el blindaje aliado en perfecto estado y es la mayor amenaza para los vehículos enemigos, pudiendo destruirlos o inutilizarlos a distancia.",
+                        gadgets: [
+                            { name: "Herramienta de Reparación", desc: "Repara vehículos aliados y daña equipamiento enemigo." },
+                            { name: "Lanzador Guiado", desc: "Dispara un misil anti-vehículo que se guía hacia el objetivo." }
+                        ],
+                        abilities: [
+                            { name: "Infantería Mecanizada", desc: "Recibe menos daño explosivo y protege vehículos." },
+                            { name: "Impacto Devastador", desc: "Dañar vehículos enemigos reduce su eficacia de reparación." },
+                            { name: "Ojiva de Inmovilización", desc: "Los impactos del lanzador inmovilizan vehículos temporalmente." }
+                        ]
+                    },
+                    fr: {
+                        role: "Spécialiste anti-véhicule. Répare les alliés et détruit les blindages ennemis.",
+                        role_detail: "L'Ingénieur contrôle le champ de bataille des véhicules. Il maintient le blindage allié en parfait état et constitue la plus grande menace pour les véhicules ennemis, capable de les détruire ou de les neutraliser à distance.",
+                        gadgets: [
+                            { name: "Outil de Réparation", desc: "Répare les véhicules alliés et endommage l'équipement ennemi." },
+                            { name: "Lanceur Guidé", desc: "Tire un missile anti-véhicule qui se guide vers la cible." }
+                        ],
+                        abilities: [
+                            { name: "Infanterie Mécanisée", desc: "Subit moins de dégâts explosifs et protège les véhicules." },
+                            { name: "Impact Dévastateur", desc: "Endommager les véhicules ennemis réduit leur efficacité de réparation." },
+                            { name: "Ogive d'Immobilisation", desc: "Les tirs du lanceur immobilisent temporairement les véhicules." }
+                        ]
+                    },
+                    de: {
+                        role: "Anti-Fahrzeug-Spezialist. Repariert Verbündete und zerstört feindliche Panzerung.",
+                        role_detail: "Der Ingenieur kontrolliert das Fahrzeug-Schlachtfeld. Er hält verbündete Panzerung in Top-Zustand und ist die größte Bedrohung für feindliche Fahrzeuge, da er sie aus der Ferne zerstören oder deaktivieren kann.",
+                        gadgets: [
+                            { name: "Reparaturwerkzeug", desc: "Repariert verbündete Fahrzeuge und beschädigt feindliche Ausrüstung." },
+                            { name: "Zielgeführter Werfer", desc: "Feuert eine Anti-Fahrzeug-Rakete ab, die sich zum Ziel lenkt." }
+                        ],
+                        abilities: [
+                            { name: "Mechanisierte Infanterie", desc: "Nimmt weniger Explosionsschaden und schützt Fahrzeuge." },
+                            { name: "Verheerender Einschlag", desc: "Das Beschädigen feindlicher Fahrzeuge verringert deren Reparatureffektivität." },
+                            { name: "Mobilitäts-Kill-Sprengkopf", desc: "Werfer-Treffer immobilisieren Fahrzeuge vorübergehend." }
+                        ]
+                    },
+                    pt: {
+                        role: "Especialista antiviatura. Repara aliados e destrói blindagem inimiga.",
+                        role_detail: "O Engenheiro controla o campo de batalha de veículos. Ele mantém a blindagem aliada em perfeitas condições e é a maior ameaça aos veículos inimigos, capaz de destruí-los ou incapacitá-los à distância.",
+                        gadgets: [
+                            { name: "Ferramenta de Reparo", desc: "Repara veículos aliados e danifica equipamentos inimigos." },
+                            { name: "Lançador Guiado", desc: "Dispara um míssil antiviatura que se guia até o alvo." }
+                        ],
+                        abilities: [
+                            { name: "Infantaria Mecanizada", desc: "Recebe menos dano explosivo e protege veículos." },
+                            { name: "Impacto Devastador", desc: "Danificar veículos inimigos reduz sua eficácia de reparo." },
+                            { name: "Ogive de Imobilização", desc: "Atingir com o lançador imobiliza veículos temporariamente." }
+                        ]
+                    }
+                },
+                support: {
+                    id: 'support',
+                    name: "Support",
+                    icon: ICONS.support,
+                    color: 'emerald',
+                    colorHex: '#10B981',
+                    en: {
+                        role: "The team's backbone. Provides health, ammo, and cover.",
+                        role_detail: "The Support is the pillar that keeps the team in the fight. Their main function is to resupply allies with health and ammunition, and use smoke to block enemy vision, allowing for safe advances and revives.",
+                        gadgets: [
+                            { name: "Supply Bag", desc: "Resupplies ammo and regenerates health for nearby infantry." },
+                            { name: "Smoke Grenade Launcher", desc: "Creates temporary smoke screens to block line of sight." }
+                        ],
+                        abilities: [
+                            { name: "Field Sustainment", desc: "Distributes health packs to teammates." },
+                            { name: "Urgent Aid", desc: "Revive downed soldiers faster." },
+                            { name: "Hemostatic Smoke", desc: "Smoke speeds up revival and slows bleedout." }
+                        ]
+                    },
+                    es: {
+                        role: "La columna vertebral del equipo. Provee salud, munición y cobertura.",
+                        role_detail: "El Apoyo es el pilar que mantiene al equipo en combate. Su principal función es reabastecer a los aliados con salud y munición, y usar humo para bloquear la visión enemiga, permitiendo avances seguros y reanimaciones.",
+                        gadgets: [
+                            { name: "Bolsa de Suministros", desc: "Reabastece munición y regenera salud para la infantería cercana." },
+                            { name: "Lanzagranadas de Humo", desc: "Crea pantallas de humo temporales para bloquear la visión." }
+                        ],
+                        abilities: [
+                            { name: "Sostenimiento de Campo", desc: "Distribuye paquetes de salud a los compañeros." },
+                            { name: "Ayuda Urgente", desc: "Reanima a soldados caídos más rápido." },
+                            { name: "Humo Hemostático", desc: "El humo acelera la curación y ralentiza el desangrado." }
+                        ]
+                    },
+                    fr: {
+                        role: "L'épine dorsale de l'équipe. Fournit santé, munitions et couverture.",
+                        role_detail: "Le Soutien est le pilier qui maintient l'équipe au combat. Sa fonction principale est de ravitailler les alliés en santé et munitions, et d'utiliser la fumée pour bloquer la vision ennemie, permettant des avancées sûres et des réanimations.",
+                        gadgets: [
+                            { name: "Sac de Ravitaillement", desc: "Ravitaille en munitions et régénère la santé de l'infanterie proche." },
+                            { name: "Lance-grenades Fumigènes", desc: "Crée des écrans de fumée temporaires pour bloquer la vision." }
+                        ],
+                        abilities: [
+                            { name: "Soutien de Terrain", desc: "Distribue des packs de santé aux coéquipiers." },
+                            { name: "Aide Urgente", desc: "Réanime les soldats tombés plus rapidement." },
+                            { name: "Fumée Hémostatique", desc: "La fumée accélère la réanimation et ralentit le saignement." }
+                        ]
+                    },
+                    de: {
+                        role: "Das Rückgrat des Teams. Bietet Gesundheit, Munition und Deckung.",
+                        role_detail: "Der Unterstützer ist die Säule, die das Team im Kampf hält. Seine Hauptfunktion ist es, Verbündete mit Gesundheit und Munition zu versorgen und Rauch einzusetzen, um die feindliche Sicht zu blockieren, was sichere Vorstöße und Wiederbelebungen ermöglicht.",
+                        gadgets: [
+                            { name: "Versorgungstasche", desc: "Füllt Munition auf und regeneriert Gesundheit für nahe Infanterie." },
+                            { name: "Rauchgranatenwerfer", desc: "Erzeugt temporäre Rauchwände, um die Sichtlinie zu blockieren." }
+                        ],
+                        abilities: [
+                            { name: "Feldversorgung", desc: "Verteilt Gesundheitspakete an Teamkollegen." },
+                            { name: "Dringende Hilfe", desc: "Belebt gefallene Soldaten schneller wieder." },
+                            { name: "Hämostatischer Rauch", desc: "Rauch beschleunigt die Wiederbelebung und verlangsamt das Ausbluten." }
+                        ]
+                    },
+                    pt: {
+                        role: "A espinha dorsal da equipe. Fornece saúde, munição e cobertura.",
+                        role_detail: "O Suporte é o pilar que mantém a equipe na luta. Sua principal função é reabastecer os aliados com saúde e munição, e usar fumaça para bloquear a visão inimiga, permitindo avanços seguros e reanimações.",
+                        gadgets: [
+                            { name: "Bolsa de Suprimentos", desc: "Reabastece munição e regenera saúde para infantaria próxima." },
+                            { name: "Lançador de Granada de Fumaça", desc: "Cria telas de fumaça temporárias para bloquear a linha de visão." }
+                        ],
+                        abilities: [
+                            { name: "Sustentação em Campo", desc: "Distribui pacotes de saúde aos companheiros de equipe." },
+                            { name: "Ajuda Urgente", desc: "Reanima soldados caídos mais rapidamente." },
+                            { name: "Fumaça Hemostática", desc: "A fumaça acelera a reanimação e retarda o sangramento." }
+                        ]
+                    }
+                },
+                recon: {
+                    id: 'recon',
+                    name: "Recon",
+                    icon: ICONS.recon,
+                    color: 'sky',
+                    colorHex: '#0EA5E9',
+                    en: {
+                        role: "Team's eyes and ears. Spots enemies and eliminates targets from afar.",
+                        role_detail: "The Recon is the intelligence specialist. They use sensors and drones to locate and spot enemies for the entire team, while neutralizing key threats from a safe distance with their precision rifle.",
+                        gadgets: [
+                            { name: "Motion Sensor", desc: "Detects and spots nearby moving enemies on the minimap." },
+                            { name: "Recon Drone", desc: "A combat drone that spots hostiles and can be armed." }
+                        ],
+                        abilities: [
+                            { name: "Passive Spotting", desc: "Aiming down sights at hostiles will spot them." },
+                            { name: "Bombardier", desc: "Recon Drone can drop explosive payloads." },
+                            { name: "Tracking Pulse", desc: "Spot enemies within a specified radius after downing their squadmate." }
+                        ]
+                    },
+                    es: {
+                        role: "Ojos y oídos del equipo. Detecta enemigos y elimina objetivos a distancia.",
+                        role_detail: "El Reconocimiento es el especialista en inteligencia. Utiliza sensores y drones para localizar y marcar enemigos para todo el equipo, mientras neutraliza amenazas clave desde una distancia segura con su rifle de precisión.",
+                        gadgets: [
+                            { name: "Sensor de Movimiento", desc: "Detecta y marca enemigos en movimiento cercanos en el minimapa." },
+                            { name: "Dron de Reconocimiento", desc: "Un dron aéreo que detecta enemigos y puede ser armado." }
+                        ],
+                        abilities: [
+                            { name: "Detección Pasiva", desc: "Apuntar a enemigos los marca en el minimapa." },
+                            { name: "Bombardero", desc: "El Dron de Reconocimiento puede soltar cargas explosivas." },
+                            { name: "Pulso de Rastreo", desc: "Abatir enemigos revela a otros hostiles cercanos por segundos." }
+                        ]
+                    },
+                    fr: {
+                        role: "Les yeux et les oreilles de l'équipe. Repère les ennemis et élimine les cibles à distance.",
+                        role_detail: "L'Éclaireur est le spécialiste du renseignement. Il utilise des capteurs et des drones pour localiser et marquer les ennemis pour toute l'équipe, tout en neutralisant les menaces clés à distance de sécurité avec son fusil de précision.",
+                        gadgets: [
+                            { name: "Capteur de Mouvement", desc: "Détecte et marque les ennemis en mouvement à proximité sur la mini-carte." },
+                            { name: "Drone de Reconnaissance", desc: "Un drone de combat qui repère les hostiles et peut être armé." }
+                        ],
+                        abilities: [
+                            { name: "Repérage Passif", desc: "Viser les hostiles les marquera sur la mini-carte." },
+                            { name: "Bombardier", desc: "Le drone de reconnaissance peut larguer des charges explosives." },
+                            { name: "Impulsion de Suivi", desc: "Repère les ennemis dans un rayon spécifié après avoir abattu leur coéquipier." }
+                        ]
+                    },
+                    de: {
+                        role: "Augen und Ohren des Teams. Spürt Feinde auf und eliminiert Ziele aus der Ferne.",
+                        role_detail: "Der Aufklärer ist der Geheimdienstspezialist. Er nutzt Sensoren und Drohnen, um Feinde für das gesamte Team zu lokalisieren und zu markieren, während er Schlüsselbedrohungen aus sicherer Entfernung mit seinem Präzisionsgewehr neutralisiert.",
+                        gadgets: [
+                            { name: "Bewegungssensor", desc: "Erkennt und markiert nahe sich bewegende Feinde auf der Minikarte." },
+                            { name: "Aufklärungsdrohne", desc: "Eine Kampfdrohne, die Feinde aufspürt und bewaffnet werden kann." }
+                        ],
+                        abilities: [
+                            { name: "Passives Spähen", desc: "Das Anvisieren von Feinden markiert sie auf der Minikarte." },
+                            { name: "Bombenschütze", desc: "Aufklärungsdrohne kann explosive Ladungen abwerfen." },
+                            { name: "Tracking-Puls", desc: "Spürt Feinde in einem bestimmten Radius auf, nachdem ihr Truppmitglied ausgeschaltet wurde." }
+                        ]
+                    },
+                    pt: {
+                        role: "Olhos e ouvidos da equipe. Detecta inimigos e elimina alvos à distância.",
+                        role_detail: "O Recon é o especialista em inteligência. Eles usam sensores e drones para localizar e marcar inimigos para toda a equipe, enquanto neutralizam ameaças-chave a uma distância segura com seu rifle de precisão.",
+                        gadgets: [
+                            { name: "Sensor de Movimento", desc: "Detecta e marca inimigos em movimento próximos no minimapa." },
+                            { name: "Drone de Reconhecimento", desc: "Um drone de combate que detecta hostis e pode ser armado." }
+                        ],
+                        abilities: [
+                            { name: "Marcação Passiva", desc: "Mirar em hostis os marcará no minimapa." },
+                            { name: "Bombardeiro", desc: "O Drone de Reconhecimento pode lançar cargas explosivas." },
+                            { name: "Pulso de Rastreamento", desc: "Detecta inimigos dentro de um raio especificado após abater um colega de esquadrão." }
+                        ]
+                    }
+                }
+            };
+
+            // --- Textos de la UI (Bilingües) ---
+            const uiStrings = {
+                en: {
+                    appTitle: "Class Guide",
+                    toggleCompare: "Comparison Mode",
+                    toggleGeneral: "General View",
+                    compare: "Compare",
+                    compareTitle: "Compare Classes",
+                    compareEmpty: "Select 1 or more classes using the \"Compare\" toggle to see them here.",
+                    close: "Close",
+                    tacticalRole: "Tactical Role",
+                    keyGadgets: "Key Gadgets",
+                    coreAbilities: "Core Abilities",
+                },
+                es: {
+                    appTitle: "Guía de Clases",
+                    toggleCompare: "Modo Comparación",
+                    toggleGeneral: "Vista General",
+                    compare: "Comparar",
+                    compareTitle: "Comparar Clases",
+                    compareEmpty: "Selecciona 1 o más clases usando el interruptor \"Comparar\" para verlas aquí.",
+                    close: "Cerrar",
+                    tacticalRole: "Rol Táctico",
+                    keyGadgets: "Dispositivos Clave",
+                    coreAbilities: "Habilidades Principales",
+                },
+                fr: {
+                    appTitle: "Guide des Classes",
+                    toggleCompare: "Mode Comparaison",
+                    toggleGeneral: "Vue Générale",
+                    compare: "Comparer",
+                    compareTitle: "Comparer les Classes",
+                    compareEmpty: "Sélectionnez 1 classe ou plus à l'aide du bouton \"Comparer\" pour les voir ici.",
+                    close: "Fermer",
+                    tacticalRole: "Rôle Tactique",
+                    keyGadgets: "Gadgets Clés",
+                    coreAbilities: "Capacités Principales",
+                },
+                de: {
+                    appTitle: "Klassen-Guide",
+                    toggleCompare: "Vergleichsmodus",
+                    toggleGeneral: "Allgemeine Ansicht",
+                    compare: "Vergleichen",
+                    compareTitle: "Klassen Vergleichen",
+                    compareEmpty: "Wähle 1 oder mehr Klassen mit dem \"Vergleichen\"-Schalter aus, um sie hier zu sehen.",
+                    close: "Schließen",
+                    tacticalRole: "Taktische Rolle",
+                    keyGadgets: "Wichtige Gadgets",
+                    coreAbilities: "Kernfähigkeiten",
+                },
+                pt: {
+                    appTitle: "Guia de Classes",
+                    toggleCompare: "Modo de Comparação",
+                    toggleGeneral: "Visão Geral",
+                    compare: "Comparar",
+                    compareTitle: "Comparar Classes",
+                    compareEmpty: "Selecione 1 ou mais classes usando o botão \"Comparar\" para vê-las aqui.",
+                    close: "Fechar",
+                    tacticalRole: "Papel Tático",
+                    keyGadgets: "Dispositivos Chave",
+                    coreAbilities: "Habilidades Principais",
+                }
+            };
+
+            // --- Estado de la Aplicación ---
+            let state = {
+                currentLang: 'en', // Inglés es el nuevo idioma por defecto
+                currentView: 'general', // 'general' o 'comparison'
+                comparisonList: [], // Array de IDs de clase, ej: ['assault', 'recon']
+            };
+
+            // ===== 2. ELEMENTOS DEL DOM =====
+            const classGrid = document.getElementById('class-grid');
+            const generalView = document.getElementById('general-view');
+            const comparisonView = document.getElementById('comparison-view');
+            const comparisonGrid = document.getElementById('comparison-grid');
+            const compareTitle = document.getElementById('compare-title');
+            const toggleCompareBtn = document.getElementById('toggle-compare-btn');
+            const langSelector = document.getElementById('lang-selector'); // Nuevo selector
+            const appTitle = document.getElementById('app-title');
+            
+            // --- Elementos del Modal ---
+            const modal = document.getElementById('detail-modal');
+            // ... (resto de elementos del modal)
+            const modalCloseBtn = document.getElementById('modal-close-btn');
+            const modalCloseSr = document.getElementById('modal-close-sr');
+            const modalIcon = document.getElementById('modal-icon');
+            const modalTitle = document.getElementById('modal-title');
+            const modalRoleTitle = document.getElementById('modal-role-title');
+            const modalRoleDesc = document.getElementById('modal-role-desc');
+            const modalGadgetsTitle = document.getElementById('modal-gadgets-title');
+            const modalGadgetsList = document.getElementById('modal-gadgets-list');
+            const modalAbilitiesTitle = document.getElementById('modal-abilities-title');
+            const modalAbilitiesList = document.getElementById('modal-abilities-list');
+
+            // ===== 3. FUNCIONES DE RENDERIZADO =====
+
+            /**
+             * Renderiza la vista principal (grid de tarjetas de clase)
+             */
+            function renderGeneralView() {
+                classGrid.innerHTML = ''; // Limpiar grid
+                const lang = state.currentLang;
+                const strings = uiStrings[lang];
+
+                for (const classId in classData) {
+                    const data = classData[classId];
+                    const classInfo = data[lang];
+                    const isChecked = state.comparisonList.includes(classId);
+
+                    const card = document.createElement('div');
+                    card.className = `class-card bg-gray-800 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-[1.03] overflow-hidden border border-gray-700/50 hover:border-${data.color}-500/50 hover:shadow-${data.color}-500/10 hover:shadow-xl`;
+                    card.innerHTML = `
+                        <div class="p-6 cursor-pointer" data-class-id="${data.id}">
+                            <div class="flex items-center gap-4 mb-4">
+                                <div class="text-${data.color}-500">${data.icon}</div>
+                                <h3 class="text-3xl font-black text-white">${data.name}</h3>
+                            </div>
+                            <p class="text-gray-400 min-h-[3em]">${classInfo.role}</p>
+                        </div>
+                        <div class="bg-gray-700/30 p-4 flex justify-end items-center gap-3 border-t border-gray-700/50">
+                            <label class="flex items-center gap-3 cursor-pointer">
+                                <span class="text-sm font-bold text-gray-200">${strings.compare}</span>
+                                
+                                <!-- Checkbox oculto -->
+                                <input 
+                                    type="checkbox" 
+                                    id="compare-${data.id}" 
+                                    data-class-id="${data.id}" 
+                                    class="compare-checkbox" 
+                                    ${isChecked ? 'checked' : ''}
+                                >
+                                
+                                <!-- Nuevo interruptor visual -->
+                                <div 
+                                    class="toggle-track" 
+                                    style="--class-color-hex: ${data.colorHex};"
+                                >
+                                    <div class="toggle-thumb"></div>
+                                </div>
+                            </label>
+                        </div>
+                    `;
+                    classGrid.appendChild(card);
+                }
+            }
+
+            /**
+             * Renderiza la vista de comparación
+             */
+            function renderComparisonView() {
+                comparisonGrid.innerHTML = ''; // Limpiar grid
+                const lang = state.currentLang;
+                const strings = uiStrings[lang];
+                
+                compareTitle.textContent = strings.compareTitle;
+
+                if (state.comparisonList.length < 1) {
+                    comparisonGrid.innerHTML = `<p class="text-gray-400 text-center w-full text-lg">${strings.compareEmpty}</p>`;
+                    return;
+                }
+
+                state.comparisonList.forEach(classId => {
+                    const data = classData[classId];
+                    const classInfo = data[lang];
+                    
+                    const column = document.createElement('div');
+                    column.className = 'flex-1 bg-gray-800 rounded-xl shadow-lg p-6 min-w-[300px] border border-gray-700/50';
+                    column.innerHTML = `
+                        <div class="flex items-center gap-3 mb-6 border-b border-gray-700 pb-4">
+                            <div class="text-${data.color}-500">${data.icon.replace('w-10 h-10', 'w-8 h-8')}</div>
+                            <h3 class="text-2xl font-black text-white">${data.name}</h3>
+                        </div>
+                        
+                        <div class="space-y-6">
+                            <section>
+                                <h4 class="text-lg font-bold text-${data.color}-400 mb-2">${strings.tacticalRole}</h4>
+                                <p class="text-gray-400 text-sm leading-relaxed">${classInfo.role_detail}</p>
+                            </section>
+                            
+                            <section>
+                                <h4 class="text-lg font-bold text-${data.color}-400 mb-2">${strings.keyGadgets}</h4>
+                                <ul class="space-y-3">
+                                    ${classInfo.gadgets.map(g => `
+                                        <li class="text-sm">
+                                            <strong class="text-gray-100">${g.name}:</strong>
+                                            <span class="text-gray-400">${g.desc}</span>
+                                        </li>
+                                    `).join('')}
+                                </ul>
+                            </section>
+                            
+                            <section>
+                                <h4 class="text-lg font-bold text-${data.color}-400 mb-2">${strings.coreAbilities}</h4>
+                                <ul class="space-y-3">
+                                    ${classInfo.abilities.map(a => `
+                                        <li class="text-sm">
+                                            <strong class="text-gray-100">${a.name}:</strong>
+                                            <span class="text-gray-400">${g.desc}</span>
+                                        </li>
+                                    `).join('')}
+                                </ul>
+                            </section>
+                        </div>
+                    `;
+                    // Corrección: usaba 'g.desc' en la lista de habilidades por error. Corregido a 'a.desc'.
+                    column.querySelector(`h4:last-of-type + ul`).innerHTML = classInfo.abilities.map(a => `
+                        <li class="text-sm">
+                            <strong class="text-gray-100">${a.name}:</strong>
+                            <span class="text-gray-400">${a.desc}</span>
+                        </li>
+                    `).join('');
+
+                    comparisonGrid.appendChild(column);
+                });
+            }
+
+            /**
+             * Muestra y rellena el modal con detalles de la clase
+             * @param {string} classId - El ID de la clase a mostrar
+             */
+            function showModal(classId) {
+                const data = classData[classId];
+                const classInfo = data[state.currentLang];
+                const strings = uiStrings[state.currentLang];
+                const color = data.color; // e.g., 'red'
+
+                // Rellenar textos de la UI
+                modalCloseSr.textContent = strings.close;
+                
+                // Aplicar colores de clase dinámicamente
+                modalIcon.className = `text-${color}-500`; // Reemplaza la clase de color
+                modalRoleTitle.className = `text-xl font-bold text-${color}-400 mb-3`;
+                modalGadgetsTitle.className = `text-xl font-bold text-${color}-400 mb-3`;
+                modalAbilitiesTitle.className = `text-xl font-bold text-${color}-400 mb-3`;
+
+                // Rellenar datos de la clase
+                modalIcon.innerHTML = data.icon.replace('w-10 h-10', 'w-8 h-8'); // Icono más pequeño
+                modalTitle.textContent = data.name;
+                modalRoleDesc.textContent = classInfo.role_detail;
+                modalRoleDesc.className = 'text-gray-400 leading-relaxed'; // Actualizar color de texto
+                
+                modalGadgetsList.innerHTML = classInfo.gadgets.map(g => `
+                    <li class="flex items-start gap-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5 text-${color}-500 flex-shrink-0 mt-1"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+                        <div>
+                            <strong class="text-gray-100">${g.name}</strong>
+                            <p class="text-gray-400 text-sm">${g.desc}</p>
+                        </div>
+                    </li>
+                `).join('');
+                
+                modalAbilitiesList.innerHTML = classInfo.abilities.map(a => `
+                    <li class="flex items-start gap-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5 text-${color}-500 flex-shrink-0 mt-1"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+                        <div>
+                            <strong class="text-gray-100">${a.name}</strong>
+                            <p class="text-gray-400 text-sm">${a.desc}</p>
+                        </div>
+                    </li>
+                `).join('');
+
+                // Mostrar modal
+                modal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden'; // Evitar scroll del body
+            }
+
+            /**
+             * Oculta el modal de detalles
+             */
+            function closeModal() {
+                modal.classList.add('hidden');
+                document.body.style.overflow = ''; // Restaurar scroll del body
+            }
+
+            /**
+             * Actualiza todos los textos de la UI al idioma actual
+             */
+            function updateUIText() {
+                const lang = state.currentLang;
+                const strings = uiStrings[lang];
+                
+                appTitle.textContent = strings.appTitle;
+                toggleCompareBtn.textContent = state.currentView === 'general' ? strings.toggleCompare : strings.toggleGeneral;
+                
+                // Asegurarse que el <select> muestre el idioma actual (por si se cambia por otra vía)
+                langSelector.value = lang;
+
+                // Volver a renderizar la vista actual para actualizar textos
+                if (state.currentView === 'general') {
+                    renderGeneralView();
+                } else {
+                    renderComparisonView();
+                }
+            }
+
+            // ===== 4. MANEJADORES DE EVENTOS =====
+
+            /**
+             * Cambia entre la vista general y la de comparación
+             */
+            function toggleCompareView() {
+                if (state.currentView === 'general') {
+                    state.currentView = 'comparison';
+                    generalView.classList.add('hidden');
+                    comparisonView.classList.remove('hidden');
+                    renderComparisonView(); // Renderizar vista de comparación
+                } else {
+                    state.currentView = 'general';
+                    generalView.classList.remove('hidden');
+                    comparisonView.classList.add('hidden');
+                    renderGeneralView(); // Renderizar vista general
+                }
+                updateUIText(); // Actualizar texto del botón
+            }
+
+            /**
+             * Maneja el clic en los checkboxes de comparación
+             * @param {string} classId - El ID de la clase
+             * @param {boolean} isChecked - Si el checkbox está marcado
+             */
+            function handleCompareCheck(classId, isChecked) {
+                if (isChecked) {
+                    if (!state.comparisonList.includes(classId)) {
+                        state.comparisonList.push(classId);
+                    }
+                } else {
+                    state.comparisonList = state.comparisonList.filter(id => id !== classId);
+                }
+                
+                // Si estamos en la vista de comparación, actualizarla en tiempo real
+                if (state.currentView === 'comparison') {
+                    renderComparisonView();
+                }
+            }
+            
+            // ===== 5. INICIALIZACIÓN Y EVENT LISTENERS =====
+
+            // --- Listeners de botones de control ---
+            langSelector.addEventListener('change', (e) => {
+                state.currentLang = e.target.value;
+                updateUIText();
+            });
+            toggleCompareBtn.addEventListener('click', toggleCompareView);
+
+            // --- Listeners del Modal ---
+            modalCloseBtn.addEventListener('click', closeModal);
+            modal.addEventListener('click', (e) => {
+                // Cerrar si se hace clic en el fondo (backdrop)
+                if (e.target === modal) {
+                    closeModal();
+                }
+            });
+
+            // --- Listeners delegados en el grid de clases ---
+            
+            // Listener para clics en la tarjeta (abrir modal)
+            classGrid.addEventListener('click', (e) => {
+                const card = e.target.closest('.class-card > div:first-child');
+                if (card) {
+                    // Clic en la tarjeta (para abrir modal)
+                    const classId = card.dataset.classId;
+                    showModal(classId);
+                }
+            });
+
+            // Listener para cambios en el checkbox (toggle)
+            classGrid.addEventListener('change', (e) => {
+                const checkbox = e.target.closest('.compare-checkbox');
+                if (checkbox) {
+                    // El interruptor cambió de estado
+                    const classId = checkbox.dataset.classId;
+                    handleCompareCheck(classId, checkbox.checked);
+                }
+            });
+
+            // --- Inicialización de la App ---
+            function init() {
+                // Pone los textos en el idioma inicial ('en' por defecto)
+                updateUIText(); 
+                // Renderiza las tarjetas iniciales
+                renderGeneralView(); 
+            }
+
+            init(); // ¡Ejecutar la aplicación!
+
+        });
+    </script>
+</body>
+</html>
+
